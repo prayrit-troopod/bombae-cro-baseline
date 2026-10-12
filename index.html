@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Bombae CRO Baseline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column (~760px) on white, Troopod audit style; wide figures break out to 980px */
+:root{
+  --bg:#FFFFFF; --surface:#F6F3FC; --line:#E6E0F2; --fg:#16131D; --muted:#5F596D; --faint:#8C869A;
+  --accent:#7A35E0; --accent-soft:#EFE7FD; --accent-mid:#B79AF5;
+  --crit:#C62F47; --crit-soft:#FBE9EC; --warn:#A86200; --warn-soft:#FBF1E0; --good:#1D7F54; --good-soft:#E3F4EC;
+  --display:"Poppins",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --body:"Poppins",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121019; --surface:#1B1824; --line:#2D2839; --fg:#EEEAF6; --muted:#ABA4BC; --faint:#7F7891;
+  --accent:#B794FF; --accent-soft:#2A2140; --accent-mid:#6E4FB0;
+  --crit:#FF7A8D; --crit-soft:#3A1C23; --warn:#F0B24F; --warn-soft:#352813; --good:#5BD39B; --good-soft:#15302A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121019; --surface:#1B1824; --line:#2D2839; --fg:#EEEAF6; --muted:#ABA4BC; --faint:#7F7891;
+  --accent:#B794FF; --accent-soft:#2A2140; --accent-mid:#6E4FB0;
+  --crit:#FF7A8D; --crit-soft:#3A1C23; --warn:#F0B24F; --warn-soft:#352813; --good:#5BD39B; --good-soft:#15302A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:40px 80px}
+.col{max-width:760px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--accent);padding-bottom:18px;margin-bottom:36px}
+header.top img{height:26px;width:auto}
+:root[data-theme="dark"] header.top img{filter:brightness(1.6)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header.top img{filter:brightness(1.6)}}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+h1{font-family:var(--display);font-size:clamp(30px,5vw,44px);line-height:1.12;font-weight:700;margin:10px 0 12px;text-wrap:balance;letter-spacing:-.01em}
+h2{font-family:var(--display);font-size:24px;line-height:1.25;font-weight:700;margin:0 0 6px;text-wrap:balance}
+h3{font-size:17px;font-weight:600;margin:28px 0 6px;line-height:1.35}
+.lede{font-size:17px;color:var(--muted);max-width:700px;margin:0}
+section{padding-top:56px}
+.sec-head{display:grid;gap:4px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-head .eyebrow{font-size:11px}
+.sec-head p{margin:0;color:var(--muted)}
+p{margin:0 0 14px}
+a{color:var(--accent)}
+strong{font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+nav.toc{margin:28px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+nav.toc a{font-size:13px;text-decoration:none;color:var(--fg);border:1px solid var(--line);padding:5px 12px;border-radius:999px}
+nav.toc a:hover,nav.toc a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:24px 0 8px}
+.kpi{background:var(--surface);border-radius:10px;padding:14px 16px;display:grid;gap:2px;align-content:start}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.2}
+.kpi .l{font-size:12.5px;color:var(--muted);line-height:1.4}
+.kpi.bad .v{color:var(--crit)}
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0}
+.callout.crit{border-color:var(--crit);background:var(--crit-soft)}
+.callout.info{border-color:var(--accent);background:var(--accent-soft)}
+.callout p:last-child{margin:0}
+.findings{display:grid;gap:12px;margin:18px 0;padding:0;list-style:none;counter-reset:f}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.finding .tag{grid-row:span 2;align-self:start;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;white-space:nowrap}
+.tag.crit{background:var(--crit-soft);color:var(--crit)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.info{background:var(--accent-soft);color:var(--accent)}
+.finding h4{margin:0;font-size:15.5px;font-weight:600;line-height:1.4}
+.finding p{margin:0;color:var(--muted);font-size:14.5px}
+.finding p b{color:var(--fg);font-weight:600}
+.tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface)}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.lo{color:var(--crit);font-weight:500}
+td.hi{color:var(--good);font-weight:500}
+figure{margin:22px 0;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+figure .ft{font-weight:600;font-size:15px;margin:0 0 2px}
+figure .fs{font-size:13px;color:var(--muted);margin:0 0 12px}
+.faint{color:var(--faint);font-weight:400}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.5}
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto;min-width:560px}
+.chart svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
+.chart svg .lbl-strong{fill:var(--fg);font-weight:600}
+.chart svg .valtxt{fill:var(--fg);font-family:var(--mono);font-size:11px}
+.grid line{stroke:var(--line);stroke-width:1}
+.bar{fill:var(--accent)}
+.bar.dim{fill:var(--accent-mid)}
+.bar.crit{fill:var(--crit)}
+.bar:hover,.hit:hover+.bar{opacity:.85}
+.band{fill:var(--surface)}
+.band.alt{fill:var(--bg)}
+#tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12.5px;line-height:1.45;padding:8px 10px;border-radius:7px;max-width:260px;z-index:10;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+#tip b{font-weight:600}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--surface);border-radius:10px;padding:16px 18px;min-width:0}
+.card h4{margin:0 0 6px;font-size:15px;font-weight:600}
+.card p,.card li{font-size:14px;color:var(--muted);margin:0}
+.card ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+.persona-q{font-style:italic;color:var(--fg);font-size:14px;margin-top:8px}
+ol.plain,ul.plain{padding-left:20px;display:grid;gap:6px;margin:10px 0 16px}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.p0{background:var(--crit-soft);color:var(--crit)}
+.pill.p1{background:var(--warn-soft);color:var(--warn)}
+.pill.p2{background:var(--good-soft);color:var(--good)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+details{border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:10px 0}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+details[open] summary{margin-bottom:8px}
+footer.end{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media (max-width:560px){.finding{grid-template-columns:1fr}.finding .tag{grid-row:auto;justify-self:start}.kpi .v{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <img src="data:image/png;base64,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" alt="Troopod">
+  <span class="meta">Prepared 12 Oct 2026 · Data: 13 Sep – 12 Oct 2026</span>
+</header>
+
+<div class="col">
+  <div class="eyebrow">Troopod CRO audit · Baseline</div>
+  <h1>Bombae: where the buying journey breaks</h1>
+  <p class="lede">The starting point for Bombae's CRO programme. It covers the store funnel, the hero products and a mobile deep-dive on the Hairess 3-in-1 Multistyler page, and closes with a prioritised test backlog, tracking gaps to close and a competitor read.</p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#summary">Summary</a><a href="#health">Data health</a><a href="#funnel">Store funnel</a><a href="#products">Hero products</a><a href="#pages">Leaking pages</a><a href="#pdp">Hairess PDP</a><a href="#user">The user</a><a href="#backlog">CRO backlog</a><a href="#tracking">Expand the data</a><a href="#competitors">Competitors</a><a href="#questions">Open questions</a>
+  </nav>
+</div>
+
+<!-- 1 SUMMARY -->
+<section id="summary">
+  <div class="sec-head col"><span class="eyebrow">01 · Executive summary</span><h2>Six things to know first</h2></div>
+  <div class="kpis">
+    <div class="kpi"><span class="v">1.16%</span><span class="l">real conversion rate: 9,537 Shopify orders ÷ 8,19,477 sessions</span></div>
+    <div class="kpi"><span class="v">₹1,740</span><span class="l">average order value</span></div>
+    <div class="kpi bad"><span class="v">24%</span><span class="l">of started checkouts become orders (Shopify orders ÷ GA4 checkouts)</span></div>
+    <div class="kpi bad"><span class="v">61%</span><span class="l">of Hairess mobile visitors leave before 20% of the page</span></div>
+    <div class="kpi"><span class="v">82%</span><span class="l">of item revenue from 3 product families</span></div>
+  </div>
+  <div class="col">
+  <ol class="findings">
+    <li class="finding"><span class="tag crit">Biggest leak</span><h4>Checkout is where most buyers are lost.</h4><p>72,015 add-to-carts become 39,286 checkouts (54.6%), but Shopify records only <b>9,537 orders, about 24% of checkouts</b> (GA4 sees just 7,242, or 18.4%). That last step loses about 3 out of 4 people who reached it.</p></li>
+    <li class="finding"><span class="tag crit">Confirmed bug</span><h4>Add to Cart leads nowhere: no cart drawer, no checkout.</h4><p>On the live Hairess page, tapping Add to Cart only shows a toast for about 2 seconds and turns the button into a "− 1 +" stepper. <b>No cart opens and there is no Checkout or View Cart button anywhere on the page.</b> To buy, the shopper has to find the small bag icon at the top right. Clarity shows about 7,700 Add to Cart taps against only <b>507 cart-icon taps</b>, roughly 1 in 15. This lines up with the 45–52% of carts that never start checkout.</p></li>
+    <li class="finding"><span class="tag crit">PDP</span><h4>The most tapped thing on the Hairess page is a dead end.</h4><p>The "Buy on EMI" / Bombae Pay Later widget pulls <b>23% of all tracked taps, about 2.5× more than Add to Cart</b>. The modal it opens has no buy button, just a close icon. Its instalment dates read <b>"3rd May / 3rd Jun"</b>, months out of date. 2,769 taps land on the non-clickable line "Select Bombae Pay Later on the payment screen".</p></li>
+    <li class="finding"><span class="tag crit">PDP</span><h4>The proof shoppers want is buried where almost nobody sees it.</h4><p>Reviews and customer photos get the <b>most attention per visitor of any section, 4–6× the hero</b>, but they start at 62% of the page and only about 6% of mobile visitors get there. Before &amp; After and the demo videos sit at 24% depth and reach about 17%.</p></li>
+    <li class="finding"><span class="tag warn">Products</span><h4>Revenue rests on two heroes, and several pages leak traffic.</h4><p>Hairess (44%) and the Fuzzoff 6-in-1 (30%) carry the store. Hairess Pro got 9,086 views and 2 add-to-carts. HAirplay Pro adds to cart at 35% but only 2.8% of those carts buy. The "Buy any 5 at ₹999" offer page turned 717 add-to-carts into 2 orders.</p></li>
+    <li class="finding"><span class="tag warn">Trust</span><h4>Small inconsistencies chip away at trust.</h4><p>Same page: "2-year warranty" in the bullets but "1.5-Years Exclusive Warranty" under the sticky button. The announcement bar on a hair-styler page says "Best Selling Women's Trimmer in India".</p></li>
+  </ol>
+  <div class="callout info"><p><strong>The real conversion rate is 1.16%, not 0.05%.</strong> Shopify's own numbers for the last 30 days show <span class="num">8,19,477</span> sessions, <span class="num">6,49,508</span> online store visitors and <span class="num">9,537</span> orders:</p>
+  <ul class="plain"><li><strong>9,537 orders ÷ 8,19,477 sessions = 1.16%</strong> per session. This is the baseline for the CRO programme.</li><li><strong>9,537 orders ÷ 6,49,508 visitors = 1.47%</strong> per visitor.</li></ul>
+  <p>Shopify's built-in conversion rate shows 0.05%, which credits only about <span class="num">410</span> sessions with a purchase. That means about <strong>96% of orders aren't linked back to the session that produced them</strong>. The likely cause is the GoKwik checkout: orders are created outside Shopify's own checkout, so Shopify counts the sale but not the converted session. The 0.05% is a tracking artefact and shouldn't be used to judge the store.</p>
+  <p>GA4 also <strong>under-counts orders by about 24%</strong>: 7,242 purchases against Shopify's 9,537, so 2,295 orders are missing. GA4 funnel ratios in this report are directionally right, but absolute purchase numbers are low.</p>
+  <p><strong>Programme KPI from here:</strong> Shopify orders ÷ Shopify sessions (1.16% today). Shopify also warns that sessions are calculated differently from 21 Sep 2026, so compare like-for-like periods after that date. Backlog item 0.</p></div>
+  </div>
+</section>
+
+<!-- 2 DATA HEALTH -->
+<section id="health">
+  <div class="sec-head col"><span class="eyebrow">02 · Data health</span><h2>Read this before trusting any number</h2><p>Tracking issues in the exports that change how the results should be read.</p></div>
+  <div class="col">
+  <ol class="findings">
+    <li class="finding"><span class="tag crit">Critical</span><h4>86% of active users have no page title ("(not set)").</h4><p>433,811 of 505,151 users show 100% bounce, 0 seconds duration and no add-to-carts. That pattern usually means events firing without a page_view (app/webview, consent mode, a server-side or GoKwik event stream, or bots and ad click-throughs that never load the page). Until this is fixed, any users-based or sessions-based conversion rate is understated.</p></li>
+    <li class="finding"><span class="tag crit">Critical</span><h4>Purchases aren't credited to the pages that produced them.</h4><p>The "Checkout – Bombae" page logs 4,353 checkouts and 2 purchases. Several landing pages show more checkouts than add-to-carts (e.g. "MyBombae I Hair Removal…": 1,728 ATC, 3,052 checkouts). 65 purchased items have an item name of "(not set)". Checkout events probably fire more than once per session, and purchase events may be missing item data. GA4 also records 7,242 purchases against Shopify's 9,537 orders, so about 24% of orders never reach GA4.</p></li>
+    <li class="finding"><span class="tag warn">Caution</span><h4>Add-ons and free gifts inflate the item report.</h4><p>Ice Jelly 15g shows 4,593 units purchased from 1,301 views for ₹6,512 of revenue, so it's being auto-added as a free gift. Heat Protectant (4,353 ATC from 1,188 views) and Soothing Spray (4,699 ATC from 867 views) are added from cart or checkout upsells. Leave them out when reading view-to-cart rates.</p></li>
+    <li class="finding"><span class="tag warn">Caution</span><h4>Clarity is a 100,000 page-view sample, and the snapshot is of an older page.</h4><p>The heatmap export is capped at 100k views (GA4 has 276k item views for the period). The screenshot was captured at ₹1,999 with an overlay expanded (6,311px tall). The live page is ₹1,799 and 5,467px tall. Section depths in this report use the live layout, so treat them as ±3 points.</p></li>
+    <li class="finding"><span class="tag info">Note</span><h4>Clarity's absolute time-on-section values are inflated.</h4><p>Its attention times add up to more than 2 hours per page view because idle background tabs keep counting. This report uses the <b>share</b> of attention and scales it against GA4's 73-second average session on the Hairess page for indicative seconds.</p></li>
+  </ol>
+  </div>
+</section>
+
+<!-- 3 FUNNEL -->
+<section id="funnel">
+  <div class="sec-head col"><span class="eyebrow">03 · Store funnel</span><h2>Where people drop, store-wide and on Hairess</h2><p>GA4 event counts, 14 Sep – 11 Oct 2026. Page-level figures are for users who viewed the page.</p></div>
+  <figure>
+    <p class="ft">Add-to-cart → checkout → purchase</p>
+    <p class="fs">Bar length is relative to add-to-carts. Labels show step conversion.</p>
+    <div class="chart" id="ch-funnel"></div>
+    <figcaption>GA4 events, so purchases are about 24% under-counted (Shopify: 9,537 orders). Store: 72,015 → 39,286 → 7,242. Hairess page: 18,293 → 8,742 → 1,985. Fuzzoff 6-in-1 page: 15,115 → 6,763 → 1,896.</figcaption>
+  </figure>
+  <div class="col">
+  <p>The first drop (cart → checkout, 45–52% lost) is largely a design bug: after adding to cart, the PDP offers no route to checkout (see <a href="#after-atc">06b</a>). The pattern is the same at every level. Roughly half of carts start checkout, then <strong>about 80% of checkouts fail to complete</strong>. Hairess (22.7%) and Fuzzoff (28.0%) do better than the store average. The leak is widest on pages that send buyers into offers and bundles.</p>
+  <div class="callout"><p><strong>Scenario:</strong> raising checkout completion from about 24% to 30% on the same traffic would mean about <span class="num">2,250</span> more orders a month, or about <span class="num">₹39 lakh</span> at the current AOV of ₹1,740. That's why checkout is in the top tier of the backlog even before the PDP work.</p></div>
+  </div>
+</section>
+
+<!-- 4 PRODUCTS -->
+<section id="products">
+  <div class="sec-head col"><span class="eyebrow">04 · Hero products</span><h2>What sells, and where each product breaks</h2><p>GA4 ecommerce purchases by item name. Rows are sorted by revenue. Add-on and free-gift items are excluded.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Product</th><th class="r">Views</th><th class="r">View→Cart</th><th class="r">Cart→Buy</th><th class="r">View→Buy</th><th class="r">Units</th><th class="r">Revenue</th><th class="r">Share</th><th class="r">Avg price</th></tr></thead>
+    <tbody>
+    <tr><td><strong>Hairess 3-in-1 Multistyler</strong></td><td class="r">276,520</td><td class="r">9.0%</td><td class="r">12.7%</td><td class="r">1.15%</td><td class="r">3,178</td><td class="r">₹61.6L</td><td class="r">44.3%</td><td class="r">₹1,938</td></tr>
+    <tr><td><strong>Fuzzoff 6-in-1 bikini trimmer</strong> <span class="faint">(2 listings)</span></td><td class="r">180,203</td><td class="r">12.2%</td><td class="r">14.3%</td><td class="r">1.76%</td><td class="r">3,164</td><td class="r">₹41.1L</td><td class="r">29.6%</td><td class="r">₹1,298</td></tr>
+    <tr><td>FuzzOff Pro 8-in-1</td><td class="r">83,290</td><td class="r lo">4.7%</td><td class="r">11.1%</td><td class="r lo">0.52%</td><td class="r">433</td><td class="r">₹11.8L</td><td class="r">8.5%</td><td class="r">₹2,732</td></tr>
+    <tr><td>HAirplay Pro styling system</td><td class="r">3,639</td><td class="r hi">34.6%</td><td class="r lo">2.8%</td><td class="r">0.96%</td><td class="r">35</td><td class="r">₹6.5L</td><td class="r">4.7%</td><td class="r">₹18,542</td></tr>
+    <tr><td>Hairplay Thermal Blowout Brush</td><td class="r">8,249</td><td class="r hi">18.5%</td><td class="r hi">17.1%</td><td class="r hi">3.16%</td><td class="r">261</td><td class="r">₹4.9L</td><td class="r">3.5%</td><td class="r">₹1,863</td></tr>
+    <tr><td>Fuzzoff 6-in-1 face &amp; bikini</td><td class="r">10,466</td><td class="r">15.2%</td><td class="r hi">17.7%</td><td class="r hi">2.69%</td><td class="r">282</td><td class="r">₹3.8L</td><td class="r">2.7%</td><td class="r">₹1,333</td></tr>
+    <tr><td>Fuzzoff 4-in-1 facial trimmer</td><td class="r">4,646</td><td class="r hi">19.9%</td><td class="r hi">17.1%</td><td class="r hi">3.40%</td><td class="r">158</td><td class="r">₹1.6L</td><td class="r">1.1%</td><td class="r">₹993</td></tr>
+    <tr><td>Hairess Pro 5-in-1</td><td class="r">9,086</td><td class="r lo">0.02%</td><td class="r">–</td><td class="r lo">0.01%</td><td class="r">1</td><td class="r">₹4.8K</td><td class="r">0.0%</td><td class="r">–</td></tr>
+    <tr><td>Twister auto curler</td><td class="r">2,664</td><td class="r lo">5.3%</td><td class="r">9.9%</td><td class="r lo">0.53%</td><td class="r">14</td><td class="r">₹42K</td><td class="r">0.3%</td><td class="r">₹2,999</td></tr>
+    </tbody></table></div>
+  <div class="col">
+  <ul class="findings">
+    <li class="finding"><span class="tag info">Insight</span><h4>Hairess turns attention into carts worse than the Fuzzoff does.</h4><p>Hairess gets 1.5× the views of Fuzzoff but converts view-to-cart at 9.0% against 12.2%. A hot-air brush is a less familiar purchase than a trimmer, so shoppers need more proof that it suits <i>their</i> hair before they commit. That's an education and proof gap on the page, not a traffic gap.</p></li>
+    <li class="finding"><span class="tag warn">Gap</span><h4>FuzzOff Pro doesn't justify its premium over the 6-in-1.</h4><p>83k views, 4.7% to cart, less than half the 6-in-1's rate, at about 2× the price. Shoppers can't see what the extra ₹1,400 buys them. A "6-in-1 vs 8-in-1" comparison on both pages should move people up or down instead of out.</p></li>
+    <li class="finding"><span class="tag crit">Gap</span><h4>HAirplay Pro loses buyers after the cart.</h4><p>35% add to cart, but only 2.8% of those carts complete at about ₹18.5k. Likely causes: price shock at checkout, COD limits on high-value orders, no visible EMI, or the add being casual. This item needs its own checkout funnel view.</p></li>
+    <li class="finding"><span class="tag crit">Broken</span><h4>Pages and products still taking traffic with nothing to sell.</h4><p>Hairess Pro (6,061 users, 2 ATC), Straightener Brush (874 views, 0 ATC), Shea hair-removal cream (407 views, 0 ATC) and 6 more items with 80+ views and zero add-to-carts. These are probably out of stock or have the button disabled. Pause ads to them, or add "notify me" plus a hero alternative.</p></li>
+    <li class="finding"><span class="tag good">Lever</span><h4>Add-ons already work, so use them deliberately.</h4><p>Heat Protectant (₹399) and Soothing Spray (₹497) get more cart adds from upsells than from their own pages, and the Ice Jelly gift goes into most orders. A Hairess + Heat Protectant bundle priced as a "complete routine" is a natural AOV test.</p></li>
+  </ul>
+  </div>
+</section>
+
+<!-- 5 PAGES -->
+<section id="pages">
+  <div class="sec-head col"><span class="eyebrow">05 · Leaking pages</span><h2>High-traffic pages that don't convert</h2><p>GA4 page title report. "Buy rate" is purchases per active user on that page.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Page</th><th class="r">Users</th><th class="r">ATC</th><th class="r">Checkouts</th><th class="r">Purchases</th><th class="r">Buy rate</th><th>What's wrong</th></tr></thead>
+    <tbody>
+    <tr><td>Hair Styling for Women (collection)</td><td class="r">64,626</td><td class="r">2,139</td><td class="r">927</td><td class="r">230</td><td class="r lo">0.36%</td><td>Third-biggest page. Probably an ad landing page. Only 3.3% add anything to cart.</td></tr>
+    <tr><td>HairPlay Pro landing page</td><td class="r">20,761</td><td class="r">1,051</td><td class="r">346</td><td class="r">33</td><td class="r lo">0.16%</td><td>₹10k+ AOV with almost no buyers. Price and EMI story missing?</td></tr>
+    <tr><td>Hairess Pro 5-in-1 PDP</td><td class="r">6,061</td><td class="r">7</td><td class="r">11</td><td class="r">2</td><td class="r lo">0.03%</td><td>Can't be bought. Redirect or relaunch.</td></tr>
+    <tr><td>"Buy any 5 products at ₹999"</td><td class="r">3,895</td><td class="r">717</td><td class="r">46</td><td class="r">2</td><td class="r lo">0.05%</td><td>People build carts, then the offer fails at cart or checkout.</td></tr>
+    <tr><td>Razors "Starting @₹99"</td><td class="r">3,557</td><td class="r">20</td><td class="r">62</td><td class="r">17</td><td class="r lo">0.48%</td><td>0.6% add to cart. The price promise may not match what's on the page.</td></tr>
+    <tr><td>"Freedom Sale … at ₹11"</td><td class="r">953</td><td class="r">7</td><td class="r">13</td><td class="r">2</td><td class="r lo">0.21%</td><td>Expired campaign page still getting traffic. 16% bounce.</td></tr>
+    <tr><td><em>Benchmark:</em> Trimmers "Starting at ₹499"</td><td class="r">16,754</td><td class="r">2,349</td><td class="r">1,117</td><td class="r">331</td><td class="r hi">1.98%</td><td>The same price-led promise works when the page delivers on it.</td></tr>
+    </tbody></table></div>
+  <div class="col"><p>Fixing the offer and collection pages doesn't need a redesign. It needs each page to keep the promise of the ad that sent people there, and broken links and expired campaigns removed from ad rotation.</p></div>
+</section>
+
+<!-- 6 PDP -->
+<section id="pdp">
+  <div class="sec-head col"><span class="eyebrow">06 · Hairess PDP deep-dive (mobile)</span><h2>How mobile visitors move through the Hairess page</h2><p>Microsoft Clarity, 13 Sep – 12 Oct 2026, 100,000 page views, 173,436 taps. Section positions measured on the live page.</p></div>
+
+  <figure>
+    <p class="ft">How far visitors scroll</p>
+    <p class="fs">Share of visitors still on the page at each depth. Shaded bands are page sections. Hover for values.</p>
+    <div class="chart" id="ch-scroll"></div>
+    <figcaption>Sections (live page, 5,467px): gallery 0–9% · title, price, EMI 9–13% · bullets + Add to Cart 13–17% · gifts + delivery check 17–23% · video feed (features, before &amp; after, what's inside) 24–33% · A+ banners 34–50% · lifestyle slider 50–56% · "truth seekers" info 56–62% · reviews + UGC 62–80% · related 80–82% · footer 82–100%.</figcaption>
+  </figure>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Section</th><th class="r">Starts at</th><th class="r">Visitors who reach it</th><th class="r">Share of attention</th><th class="r">≈ seconds*</th></tr></thead>
+    <tbody id="sec-table"></tbody></table></div>
+  <div class="col"><p class="meta">*Indicative: share of attention × GA4 average session on this page (73s).</p></div>
+
+  <figure>
+    <p class="ft">Attention per visitor who reached each depth</p>
+    <p class="fs">Clarity attention share divided by scroll reach, indexed so the top of the page = 1.0. A high bar means the few visitors who get there study it closely.</p>
+    <div class="chart" id="ch-attn"></div>
+    <figcaption>The reviews zone (65–75%) peaks at 6.5× the hero. The A+ feature banners (35–55%) are skimmed at 0.3–0.5×. The footer spike is shoppers looking for policies, contact or order tracking.</figcaption>
+  </figure>
+
+  <figure>
+    <p class="ft">What visitors tap</p>
+    <p class="fs">Share of the 83,946 taps on the top 641 tracked elements (48% of all taps), grouped by page component.</p>
+    <div class="chart" id="ch-taps"></div>
+    <figcaption>"Add to Cart (all)" combines the sticky button (9,253 incl. qty and price) and the in-page button (1,285). The gift-voucher block registered almost no taps.</figcaption>
+  </figure>
+
+  <div class="col">
+  <div class="callout crit">
+    <p><strong>Shoppers want to buy on EMI, but the EMI screen has no way to buy.</strong> The EMI / Pay Later widget is the most tapped part of the page, at 23% of tracked taps and about 1.8× the taps on every Add to Cart button combined. Inside it, shoppers read the plan and then leave:</p>
+    <ul class="plain">
+      <li><span class="num">5,535</span> taps open the "Pay only ₹600 now" modal.</li>
+      <li><span class="num">5,291</span> taps close it: <span class="num">2,215</span> on the X and <span class="num">3,076</span> on the dark area behind it. That's almost one close for every open.</li>
+      <li><span class="num">2,769</span> taps land on the line "Select Bombae Pay Later on the payment screen". People try to act on it, but it's plain text.</li>
+      <li>The modal's only button is Close. There is no way to add to cart or start checkout from it.</li>
+    </ul>
+    <p>These are shoppers who want the product and are working out whether they can afford it. When they decide yes, the page sends them back to the start with no button to act on, and they have to remember to pick Pay Later several steps later in checkout.</p>
+    <p><strong>Recommendation:</strong> put a <strong>"Buy on EMI · Pay ₹600 today"</strong> button inside the modal. One tap should add Hairess to the cart and open GoKwik checkout with Bombae Pay Later (Snapmint) already selected. Also:</p>
+    <ul class="plain"><li>Show the same button under the price, next to "or ₹600 × 3 at 0% interest".</li><li>Replace the hardcoded "3rd May / 3rd Jun" with real dates from today.</li><li>Make the "select Pay Later on the payment screen" line part of the button instead of a dead instruction.</li></ul>
+    <p>If even 1 in 5 modal openers (about 1,100 a month in this 100k-view sample) goes on to checkout at the Hairess page's current 22.7% checkout-to-order rate, that's about 250 extra orders a month from Clarity's sample alone. The full traffic is about 2.7× larger.</p>
+  </div>
+  </div>
+
+  <div class="col" id="after-atc">
+  <h3>06b · Live audit: what happens after Add to Cart</h3>
+  <p>We tested this on the live page (mobile, 375px wide, 12 Oct 2026). Every item below was reproduced, not inferred.</p>
+  <ol class="findings">
+    <li class="finding"><span class="tag crit">P0 · bug</span><h4>Add to Cart has no next step.</h4><p>Tap Add to Cart and a small "Product added to cart" toast appears over the header for about 2 seconds. It can't be tapped. The cart badge changes to 1, and <b>both Add to Cart buttons (in-page and sticky) become a "− 1 +" stepper</b>. No cart drawer opens, no checkout starts, and no "Checkout" or "View cart" button appears. The only way forward is the 40px bag icon at the top right, out of thumb reach. Clarity: about 7,700 Add to Cart taps, 507 cart-icon taps, and 1,622 taps on the stepper where the button used to be. A working GoKwik cart drawer with a Checkout button already exists. It just doesn't open on add.</p></li>
+    <li class="finding"><span class="tag crit">P0 · bug</span><h4>Returning cart holders see no buy button at all.</h4><p>If Hairess is already in the cart, for example a shopper coming back from a retargeting ad, the PDP loads with only the "− 1 +" stepper in both places. There is no Add to Cart, Buy Now or Checkout button. Retargeted visitors who abandoned their cart are the most likely to buy, and the page gives them nothing to tap.</p></li>
+    <li class="finding"><span class="tag warn">P1 · bug</span><h4>The scroll-to-top button covers the sticky Add to Cart.</h4><p>After scrolling, the round scroll-to-top button (44×40px) sits <b>on top of the right 20% of the sticky Add to Cart button</b>, so taps there scroll the page to the top instead of adding to cart. Clarity logged 902 taps on that button.</p></li>
+    <li class="finding"><span class="tag warn">P1</span><h4>"+" quietly adds a second unit.</h4><p>Tapping "+" on the stepper adds a second Hairess (₹3,598) with only a toast. The sticky bar still shows ₹1,799. Shoppers tapping where the button used to be can end up at checkout with double the price.</p></li>
+    <li class="finding"><span class="tag warn">P1</span><h4>The cart drawer works against the sale.</h4><p>Once opened from the header icon:</p>
+      <ul class="plain"><li>The cross-sell is <b>body wax strips</b>, when it should be the ₹399 Heat Protectant.</li><li>The coupon field sits at the top, which sends shoppers off looking for codes.</li><li>The drawer says "You have unlocked all rewards!", while the announcement bar rotates "Free Pouch on orders above ₹2,000" and "Free Tote Bag above ₹2,500". At ₹1,799, Hairess is ₹201 short of a free pouch and nothing says so.</li><li>The prepaid incentive is only ₹20 off UPI.</li></ul></li>
+    <li class="finding"><span class="tag crit">P0</span><h4>The page is slow, and slow pages lose buyers before they see anything.</h4><p>Google PageSpeed Insights for the Hairess page (mobile, 12 Oct 2026):</p>
+      <ul class="plain">
+        <li><b>Real users (Chrome UX Report, last 28 days): Core Web Vitals failed.</b> The main image appears in 2.8s for 75% of visits (Google's "good" is 2.5s or less). Taps take 207ms to respond (good is 200ms or less). First content appears in 2.4s, and the server responds in 0.8s.</li>
+        <li><b>Mid-range Android on slow 4G (Lighthouse lab test): performance score 49/100.</b> First content at 8.2s, the main image at 22.1s, the page looks complete at about 10.0s, and the page weighs 8.8 MB.</li>
+        <li><b>What causes it:</b> 3.3s of JavaScript work, 1,045 KiB of JavaScript that's loaded but not used, 768 KiB that better images would save, and render-blocking files that hold up the first view by about 1.7s. About 93 scripts load from GoKwik (6 domains), Snapmint, Unloq, Sagepilot chat, Popin video calling, Judge.me, Clarity, Meta and Google.</li>
+      </ul>
+      <p><b>Why it matters:</b> Google's mobile research found that as load time goes from 1s to 3s, the chance a visitor bounces rises by 32%. At 5s it rises by 90%, at 6s by 106%, and at 10s by 123%. Google has also reported that 53% of mobile visits are abandoned when a page takes longer than 3 seconds to load. Every Bombae visitor on a slower connection is in that zone, which helps explain why 61% leave within the first screen and a half. Page speed should be its own workstream alongside the CRO tests.</p></li>
+  </ol>
+
+  <h3>What the PDP data says</h3>
+  <ol class="findings">
+    <li class="finding"><span class="tag crit">P0</span><h4>EMI / Pay Later is the top intent signal, and it goes nowhere.</h4><p>5,535 taps open the modal and 11,393 taps happen inside it. It has <b>no "Buy now with Pay Later" button</b>, the instalment dates are hardcoded to <b>3rd May / 3rd Jun</b>, and the instruction to "select Bombae Pay Later on the payment screen" pulls 2,769 taps from people trying to act on it. Shoppers are saying the price is a stretch, and the page sends them back to the start.</p></li>
+    <li class="finding"><span class="tag crit">P0</span><h4>The buying decision happens in the first screen, and that screen is mostly text.</h4><p>Reach falls from 99.6% at 10% depth to 38.6% at 20%, and 46% of all attention is spent in the top 10% of the page. Visitors either buy or leave from the first screen.</p><p>Most of Bombae's selling material sits below that point and is never seen: the ad creatives, the UGC reels, Before &amp; After, the feature visuals and the reviews. The first screen itself is a box shot, the title, a price, an EMI box and four emoji bullet points of copy. There's no hair result, no demo, no visual USPs, and nothing a shopper can take in at a glance.</p><p><b>Recommendation:</b> bring the persuasion up into the first screen. Add a short UGC or result clip to the gallery's second slide. Turn the bullets into visual USP icons (3-in-1 heads, ionic anti-frizz, fast dry, 2-year warranty). Add key product details as scannable chips (hair types, heat settings, what's in the box). Put a strip of review photos next to the rating. Less reading, more seeing.</p></li>
+    <li class="finding"><span class="tag crit">P0</span><h4>Proof sits below the point where 94% have already left.</h4><p>Reviews and UGC get 16% of all attention from about 6% of visitors. The video feed (Before &amp; After, What's inside) is the second-most-tapped content (7,802 taps) but is first seen by about 17%. The A+ feature banners between them take up 16% of the page height and get skimmed.</p></li>
+    <li class="finding"><span class="tag crit">P0</span><h4>The image section isn't doing its job. Visitors scroll straight past it.</h4><p>The A+ image banners ("Hair Goddess", "Zero fuss. Zero hassle.", the feature callouts, "One styler, infinite looks") run from 34% to 56% of the page. When visitors reach them, attention per visitor <b>drops to 0.3–0.5× the top of the page</b>, the lowest anywhere. It rises again once they pass into the "truth seekers" info and reviews. Only about 5% of all attention lands in this block, even though it's the tallest section on the page. Visitors flick through without reading the feature callouts, so the product benefits these images are meant to explain don't get through. Cut the block to one or two visuals, move the strongest feature callouts into the first screen as icons, and use the space saved to bring reviews and UGC higher.</p></li>
+    <li class="finding"><span class="tag warn">P1</span><h4>Shoppers tap through the gallery hunting for proof.</h4><p>8,095 taps on gallery arrows and dots plus 6,225 in the zoom lightbox, out of 15 slides. The second slide should answer "will it work on my hair?" with a result image or a 6-second demo loop, not another pack shot.</p></li>
+    <li class="finding"><span class="tag warn">P1</span><h4>The menu is the main way out, and the page doesn't steer shoppers anywhere.</h4><p>The hamburger menu and drawer take 8,867 taps (10.6%), almost as many as Add to Cart. Shoppers who aren't ready to buy Hairess have no relevant next step on the page, so they open the menu and look for one themselves. Bombae isn't choosing where they go next. Related products should be one tap away near the top: Hairess Pro, Hairplay Blowout Brush, Headstart dryer, the Heat Protectant add-on, and a "compare stylers" link, instead of a generic menu and an unrelated "You may also like" at 80% depth. Also, 1,720 of the menu taps go to "My Orders", so existing customers are landing on this ad-led page. Exclude recent buyers from Hairess prospecting audiences, and show "My orders" in the header for returning visitors.</p></li>
+    <li class="finding"><span class="tag info">P2</span><h4>Mixed messages on the page.</h4><p>Warranty shows as 2 years in the bullets and 1.5 years at the sticky button. The announcement bar says "Best Selling Women's Trimmer in India" on a hair styler. Related products include a bikini trimmer. The "truth seekers" accordion (Country of Origin / Marketed By / Use Before) got 2,920 taps, which suggests origin and authenticity questions worth answering upfront.</p></li>
+  </ol>
+  </div>
+</section>
+
+<!-- 7 USER -->
+<section id="user">
+  <div class="sec-head col"><span class="eyebrow">07 · Understanding the user</span><h2>Who the Bombae shopper is, from the behaviour</h2><p>Inferred from the click, scroll and funnel data. Confirm with surveys and session recordings (see section 09).</p></div>
+  <div class="two">
+    <div class="card"><h4>Mobile-first and fast</h4><p>The Hairess sessions here are mobile, about 73 seconds long, and mostly spent on the first screen. Decisions happen in the first scroll, so anything below 20% depth is a bonus.</p></div>
+    <div class="card"><h4>Price-stretched, not price-blind</h4><p>Pay Later is the most tapped element on the page, and "Starting at ₹499" pages convert 4× better than average. ₹1,799 feels like a considered purchase. Making it feel affordable (₹600 × 3, cost per use against salon blowouts) is the unlock.</p></div>
+    <div class="card"><h4>Visual verifier</h4><p>Heavy gallery, zoom and reel engagement. She needs to see the result on hair like hers before she trusts the claim. Copy alone ("ionic tech", "damage-free") doesn't do it.</p></div>
+    <div class="card"><h4>Delivery- and risk-anxious</h4><p>Lots of pincode checks, origin questions and footer visits to policies. She wants to know when it arrives, whether she can return it and whether the warranty is real, and the page currently makes her hunt for each.</p></div>
+    <div class="card"><h4>Proof-seeker who rarely finds it</h4><p>The visitors who reach reviews spend the most time there of anywhere on the page. Social proof moves her, but it sits at 62% depth.</p></div>
+    <div class="card"><h4>A first-time category buyer (Hairess)</h4><p>A hot-air brush is less familiar than a trimmer: "Will it straighten my curly hair?", "Is it like a Dyson?", "Will it fry my hair?" The view-to-cart gap against Fuzzoff points to unanswered how-to and suitability questions.</p></div>
+  </div>
+  <div class="col">
+    <p class="persona-q">Working persona: "I want salon-smooth hair without the salon bill, but I've been burned by gadgets that don't work on my hair. Show me it works on someone like me, tell me when it'll arrive, and make the price feel easy."</p>
+  </div>
+</section>
+
+<!-- 8 BACKLOG -->
+<section id="backlog">
+  <div class="sec-head col"><span class="eyebrow">08 · CRO initiative backlog</span><h2>What to test, in order</h2><p>P0 = fix or test now · P1 = next sprint · P2 = queue. Impact and effort are relative estimates.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Priority</th><th>Initiative</th><th>Hypothesis / change</th><th>Primary metric</th><th>Effort</th></tr></thead>
+    <tbody>
+    <tr><td class="r">0</td><td><span class="pill p0">P0</span></td><td><strong>Measurement fix</strong></td><td>Fix the "(not set)" page views, de-duplicate begin_checkout, reconcile GA4 purchases against Shopify and GoKwik orders, agree one CR definition.</td><td>GA4 vs Shopify order gap &lt; 5%</td><td>Low</td></tr>
+    <tr><td class="r">1</td><td><span class="pill p0">P0</span></td><td><strong>Open the cart on Add to Cart</strong></td><td>Make Add to Cart open the GoKwik cart drawer with Checkout in view. Test against a "Buy Now" button that goes straight to checkout. Keep the CTA as "Go to checkout · ₹1,799" instead of turning it into a stepper.</td><td>Cart → checkout (47.8% on Hairess)</td><td>Low</td></tr>
+    <tr><td class="r">2</td><td><span class="pill p0">P0</span></td><td><strong>Fix the in-cart PDP state</strong></td><td>When the item is already in the cart, show "Checkout" or "Buy now" next to the quantity, never the stepper alone.</td><td>Checkout starts from retargeting traffic</td><td>Low</td></tr>
+    <tr><td class="r">3</td><td><span class="pill p0">P0</span></td><td><strong>Clear the sticky bar</strong></td><td>Move or hide the scroll-to-top button while the sticky ATC is visible. Show the line total when quantity is more than 1.</td><td>Mis-taps; ATC rate</td><td>Low</td></tr>
+    <tr><td class="r">4</td><td><span class="pill p0">P0</span></td><td><strong>Fix the Pay Later modal</strong></td><td>Add a "Buy on EMI · Pay ₹600 today" CTA inside the modal and under the price. One tap adds to cart and opens GoKwik checkout with Bombae Pay Later (Snapmint) preselected. Use live instalment dates and show "₹600 × 3" next to the price. Evidence: 5,535 modal opens, 5,291 closes, 2,769 taps on the dead instruction line.</td><td>Modal → checkout rate; PDP CR</td><td>Low</td></tr>
+    <tr><td class="r">5</td><td><span class="pill p0">P0</span></td><td><strong>Checkout drop audit</strong></td><td>Pull the GoKwik step funnel (phone → OTP → address → payment → order). Test a prepaid offer shown before payment, COD fee clarity, and the free-gift line in the order summary.</td><td>Checkout → order (about 24% now)</td><td>Med</td></tr>
+    <tr><td class="r">6</td><td><span class="pill p0">P0</span></td><td><strong>Rebuild the first screen</strong></td><td>Make the first fold visual instead of text: a UGC or result clip as gallery slide 2, USP icons in place of the emoji bullets, scannable detail chips (hair types, heat settings, in the box), a review-photo strip by the rating, and a trust row (2-yr warranty · returns · delivery).</td><td>Reach at 20%; ATC rate</td><td>Med</td></tr>
+    <tr><td class="r">7</td><td><span class="pill p0">P0</span></td><td><strong>Move proof up</strong></td><td>Put a review snippet carousel and the UGC photo strip directly under Add to Cart, and move the video feed above the A+ banners. Cut A+ banners to 2.</td><td>Reach to reviews; ATC rate</td><td>Low</td></tr>
+    <tr><td class="r">8</td><td><span class="pill p0">P0</span></td><td><strong>Page speed sprint</strong></td><td>Get real-user Core Web Vitals passing (LCP 2.8s → under 2.5s, INP 207ms → under 200ms). Defer non-critical apps (chat, video calling, Unloq). Remove unused JavaScript (1 MB). Compress and size the gallery images. Preload the main image.</td><td>CWV pass; reach at 20%; bounce</td><td>Med</td></tr>
+    <tr><td class="r">9</td><td><span class="pill p1">P1</span></td><td>Hair-type guide</td><td>A "Works on: straight · wavy · curly · thick" chip row linking to a 15-second demo for each type. Answers the main Hairess objection.</td><td>View → ATC (9% → Fuzzoff level)</td><td>Med</td></tr>
+    <tr><td class="r">10</td><td><span class="pill p1">P1</span></td><td>Consistency sweep</td><td>One warranty number. A product-specific announcement bar. Hair-care related products (Heat Protectant) instead of trimmers. Answer origin questions in plain words.</td><td>Trust-related taps; CR</td><td>Low</td></tr>
+    <tr><td class="r">11</td><td><span class="pill p1">P1</span></td><td>Fix dead and offer pages</td><td>Redirect Hairess Pro or add "notify me". Fix the "any 5 at ₹999" cart logic. Retire the ₹11 sale page. Align the ₹99 razor ad with what's on the page.</td><td>Buy rate per page</td><td>Low</td></tr>
+    <tr><td class="r">12</td><td><span class="pill p1">P1</span></td><td>Bundle and routine upsell</td><td>Hairess + Heat Protectant "Salon Kit" on the PDP with a small bundle discount.</td><td>AOV; attach rate</td><td>Low</td></tr>
+    <tr><td class="r">13</td><td><span class="pill p1">P1</span></td><td>Cart drawer clean-up</td><td>Cross-sell Heat Protectant instead of wax strips. Collapse the coupon field. Add a "₹201 away from a free pouch" progress bar. Raise the prepaid incentive above ₹20.</td><td>AOV; cart → checkout</td><td>Low</td></tr>
+    <tr><td class="r">14</td><td><span class="pill p1">P1</span></td><td>One-tap relevant products</td><td>A "More from Hairplay / Hairess" strip high on the page (Hairess Pro, Blowout Brush, Headstart dryer, Heat Protectant) with a compare link, so shoppers who hesitate are steered to another styler instead of the menu.</td><td>Menu taps; PDP exits; collection CR</td><td>Low</td></tr>
+    <tr><td class="r">15</td><td><span class="pill p1">P1</span></td><td>Trim the image section</td><td>Cut the A+ banner block (34–56% of the page) to 1–2 visuals, move its feature callouts up as icons, and move reviews and UGC higher.</td><td>Reach to reviews; ATC rate</td><td>Low</td></tr>
+    <tr><td class="r">16</td><td><span class="pill p2">P2</span></td><td>FuzzOff 6 vs 8 comparison</td><td>A side-by-side table on both PDPs so the ₹1,400 step-up is a visible choice.</td><td>FuzzOff Pro view → ATC</td><td>Low</td></tr>
+    <tr><td class="r">17</td><td><span class="pill p2">P2</span></td><td>Collection page as a landing page</td><td>Hair Styling collection: hero product first with a quick-add, a "which styler is right for me" picker, and no generic grid above the fold.</td><td>Collection buy rate (0.36%)</td><td>Med</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 9 TRACKING -->
+<section id="tracking">
+  <div class="sec-head col"><span class="eyebrow">09 · Expand the data</span><h2>What to add so the next read is sharper</h2><p>Today we can see what happens on the page, but not who it happens to or why. These additions close that gap.</p></div>
+  <div class="col"><div class="callout crit"><p><strong>GoKwik checkout data: no access yet, and the biggest blind spot.</strong> GoKwik runs everything from Checkout to order: phone and OTP, address, payment method (COD, UPI, card, Pay Later via Snapmint), payment failures and drop-offs at each step. None of it reaches GA4 or Shopify in a usable form. That's why we can see that 82% of checkouts fail but can't see <em>where</em> or <em>why</em>. With access to the GoKwik merchant dashboard (step funnel, payment-method split, COD vs prepaid, RTO and drop-off reasons), the checkout half of the journey becomes visible, and the Shopify vs GA4 order gap can be reconciled.</p></div></div>
+  <div class="two">
+    <div class="card"><h4>GA4 events to add (custom)</h4><ul>
+      <li><span class="num">emi_open</span>, <span class="num">emi_cta_click</span></li>
+      <li><span class="num">review_interact</span>, <span class="num">faq_open</span> (which question)</li>
+      <li><span class="num">scroll_section_view</span> per PDP section</li>
+    </ul></div>
+    <div class="card"><h4>Clarity setup</h4><ul>
+      <li>Custom tags for traffic source, new vs returning, and cart value, so heatmaps can be filtered</li>
+      <li>Smart events: ATC, EMI open, checkout start, purchase. Then compare heatmaps of buyers and non-buyers</li>
+    </ul></div>
+    <div class="card"><h4>Business data to request</h4><ul>
+      <li>Shopify orders by sales channel (Online Store vs GoKwik) for the same window, to fix the 0.05% reading</li>
+      <li>GoKwik checkout funnel and the payment-method split</li>
+      <li>Top on-site search terms and zero-result searches</li>
+      <li>Review mining across Amazon, Nykaa and Flipkart listings for hair-type objections</li>
+    </ul></div>
+    <div class="card"><h4>Experiment hygiene</h4><ul>
+      <li>An A/B tool on the theme (e.g. Shoplift, Intelligems, VWO) with GA4 integration</li>
+      <li>A test log with hypothesis, metric, sample size and result</li>
+      <li>Minimum detectable effect worked out from Hairess traffic (about 9k views a day) before each test</li>
+      <li>Freeze price changes during PDP tests. Price moved from ₹1,999 to ₹1,799 inside this window</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- 10 COMPETITORS -->
+<section id="competitors">
+  <div class="sec-head col"><span class="eyebrow">10 · Competitor analysis</span><p>Six competitor product pages reviewed in October 2026: Ikonic, AGARO, VEGA, Dyson, Alan Truman and Sirona (the closest rival to Fuzzoff).</p></div>
+
+<div class="col">
+<h3>Where Bombae already leads</h3>
+<ul class="plain">
+  <li><strong>Price and warranty.</strong> At ₹1,799 with a 2-year warranty, Hairess is the cheapest of the comparable hot-air brushes and has the longest warranty except Dyson. The page doesn't say so at the top, and it contradicts itself (1.5 years at the sticky button).</li>
+  <li><strong>Review volume and UGC.</strong> 205 reviews with customer photos beats every mid-price rival. Most show no reviews or no photos. The advantage is wasted at 62% depth.</li>
+  <li><strong>Pay-in-instalments exists.</strong> Only Dyson presents EMI well. Bombae is the only brand under ₹3k offering it, but the modal is broken.</li>
+</ul>
+
+<h3>Where competitors are ahead</h3>
+<ol class="findings">
+  <li class="finding"><span class="tag info">Dyson</span><h4>Four reassurance tiles directly under the price</h4><p>Cashback and no-cost EMI · COD up to ₹25,000 · 10-day no-questions return · 2-year warranty. Every main objection is answered before the shopper scrolls. Bombae's warranty, returns and delivery information is spread between the bullets, the sticky bar and the footer.</p></li>
+  <li class="finding"><span class="tag info">Dyson</span><h4>EMI shown as a monthly amount, right under the price</h4><p>"₹1,913/month" is shown as part of the price, not behind a button. For Hairess, "or ₹600 × 3, 0% interest" inline with the price makes the same point without a modal.</p></li>
+  <li class="finding"><span class="tag info">AGARO</span><h4>Final price after the code is shown for you</h4><p>The "Calculate Savings" widget shows ₹1,804 after the coupon, so the shopper never has to do the maths or find the code at checkout.</p></li>
+  <li class="finding"><span class="tag info">Ikonic · AGARO</span><h4>Faster checkout entry</h4><p>Ikonic puts a one-tap UPI "Buy Now" above Add to Cart, and AGARO uses Razorpay Magic one-click. With Bombae's checkout completion at about 24%, a direct-to-payment path for the hero product is worth testing.</p></li>
+  <li class="finding"><span class="tag info">Sirona · Alan Truman</span><h4>Objection-led education</h4><p>Sirona has how-to by body area, a 10-question myth-busting FAQ and a cost table against salon waxing and cream. Alan Truman has "common mistakes", curly-hair guidance and wet vs dry use. Bombae's FAQ slot only holds legal fields (Country of Origin / Marketed By / Use Before).</p></li>
+  <li class="finding"><span class="tag info">Sirona</span><h4>Volume proof next to the title</h4><p>"13,486 units sold recently" next to the rating. Hairess sells about 3,200 a month and could say "3,000+ bought this month".</p></li>
+  <li class="finding"><span class="tag info">Dyson</span><h4>"What's in the box" with each attachment explained</h4><p>This justifies the multi-tool claim. It suits Hairess (dryer head + volumiser head) and Fuzzoff 6-in-1 vs Pro 8-in-1.</p></li>
+</ol>
+
+<h3>Open gaps nobody fills</h3>
+<p>None of the six shows an automatic delivery date, review photos or videos near the top, before/after results, or real hair-type guidance in the mid-price range. If Bombae is first to do these well on mobile, it gets a lead the others haven't claimed.</p>
+
+
+<details><summary>Pages reviewed</summary>
+<ul class="plain" style="font-size:13px">
+<li>ikonicworld.com/products/ikonic-me-3-in-1-express-hair-styler</li>
+<li>agarolifestyle.com/products/hv2179-volumizer-hair-dryer</li>
+<li>vega.co.in/litstyle-l3-volumizer-hair-dryer-brush.html</li>
+<li>dyson.in/airwrap-id-multi-styler-dryer-vinca-blue-topaz</li>
+<li>alantruman.com/products/alan-truman-the-blow-brush-gold-ceramic</li>
+<li>thesirona.com/products/6-in-1-electric-razor</li>
+<li>Philips India BHA531 was checked but has no price or buy button, so it was left out.</li>
+</ul></details>
+</div>
+
+</section>
+
+<!-- 11 QUESTIONS -->
+<section id="questions">
+  <div class="sec-head col"><span class="eyebrow">11 · Open questions</span><h2>What we need from the Bombae team</h2></div>
+  <div class="col">
+  <ol class="plain">
+    <li><strong>Shopify orders by sales channel</strong> (Online Store vs GoKwik) for the last 30 days. Shopify's total of 9,537 orders gives a real rate of 1.16%, while its built-in rate credits only about 410 sessions. The split will confirm that GoKwik orders are the ones not linked to sessions.</li>
+    <li>Can we get access to the GoKwik dashboard for the checkout step funnel and payment-method split?</li>
+    <li>What's the traffic mix by channel, and which ads land on the Hairess PDP and on the Hair Styling collection?</li>
+    <li>Is Hairess Pro out of stock or pre-launch? Is the "any 5 at ₹999" offer meant to be live?</li>
+    <li>Which warranty is correct, 1.5 or 2 years? What's the return policy for styling tools?</li>
+    <li>Bombae Pay Later runs inside the GoKwik checkout, with Snapmint as the buy-now-pay-later partner. Can GoKwik support a PDP button that opens checkout with Pay Later (Snapmint) already selected?</li>
+  </ol>
+  </div>
+</section>
+
+<footer class="end"><span>Troopod · Bombae CRO baseline</span><span>Sources: GA4 (BSC-Women property), Microsoft Clarity (Bombae project), live mybombae.in review on 12 Oct 2026</span></footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function(){
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.hidden=false;moveTip(e)}
+function moveTip(e){const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'}
+function hideTip(){tip.hidden=true}
+function bindTip(el,html){el.addEventListener('mousemove',e=>showTip(e,html));el.addEventListener('mouseleave',hideTip);el.setAttribute('tabindex','0');el.addEventListener('focus',()=>{const r=el.getBoundingClientRect();showTip({clientX:r.left,clientY:r.top},html)});el.addEventListener('blur',hideTip)}
+const NS='http://www.w3.org/2000/svg';
+function S(tag,attrs,parent){const el=document.createElementNS(NS,tag);for(const k in attrs)el.setAttribute(k,attrs[k]);if(parent)parent.appendChild(el);return el}
+function T(txt,attrs,parent){const t=S('text',attrs,parent);t.textContent=txt;return t}
+const fmt=n=>n.toLocaleString('en-IN');
+
+/* ---------- Funnel ---------- */
+(function(){
+  const rows=[
+    {name:'Store',v:[72015,39286,7242]},
+    {name:'Hairess PDP',v:[18293,8742,1985]},
+    {name:'Fuzzoff 6-in-1 PDP',v:[15115,6763,1896]}];
+  const steps=['Add to cart','Checkout','Purchase'];
+  const W=900,lw=150,bw=W-lw-90,rowH=30,gH=rowH*3+34;const H=rows.length*gH+10;
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Funnel by page'});
+  rows.forEach((r,gi)=>{
+    const y0=gi*gH+6;
+    T(r.name,{x:0,y:y0+12,class:'lbl-strong'},svg);
+    r.v.forEach((v,i)=>{
+      const y=y0+22+i*rowH,w=Math.max(2,bw*v/r.v[0]);
+      T(steps[i],{x:0,y:y+15},svg);
+      const b=S('rect',{x:lw,y:y,width:w,height:rowH-8,rx:4,class:'bar'+(i===2?' crit':i===1?' dim':'')},svg);
+      const conv=i?(v/r.v[i-1]*100).toFixed(1)+'% of previous step':'100%';
+      T(fmt(v)+(i?'  ·  '+(v/r.v[i-1]*100).toFixed(1)+'%':''),{x:lw+w+8,y:y+15,class:'valtxt'},svg);
+      bindTip(b,`<b>${r.name} · ${steps[i]}</b><br>${fmt(v)} events<br>${conv}`);
+    });
+  });
+  document.getElementById('ch-funnel').appendChild(svg);
+})();
+
+/* ---------- Scroll + sections ---------- */
+const depth=[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100];
+const reach=[100,99.905,99.58,74.986,38.55,17.159,14.138,11.166,9.461,8.6,7.855,7.376,6.877,6.439,5.955,5.261,4.589,4.052,3.335,2.852,1.764];
+const attn={5:23.53,10:22.62,15:7.25,20:5.04,25:4.13,30:4.09,35:1.16,40:0.75,45:0.70,50:0.72,55:0.91,60:1.05,65:2.14,70:9.18,75:5.12,80:2.24,85:2.05,90:2.51,95:3.05,100:1.76};
+const sections=[
+  ['Gallery',0,9],['Title · price · EMI',9,13],['Bullets · Add to Cart',13,17],['Gifts · delivery check',17,23.6],
+  ['Video feed (before/after)',23.6,33],['A+ feature banners',33,50],['Lifestyle slider',50,56],['"Truth seekers" info',56,62],
+  ['Reviews + UGC',62,80],['Related products',80,82],['Footer',82,100]];
+function reachAt(d){for(let i=1;i<depth.length;i++){if(d<=depth[i]){const t=(d-depth[i-1])/(depth[i]-depth[i-1]);return reach[i-1]+t*(reach[i]-reach[i-1])}}return reach[reach.length-1]}
+function attnBetween(a,b){/* attention buckets are (d-5,d]; split proportionally */let s=0;for(const k in attn){const hi=+k,lo=hi-5;const ov=Math.max(0,Math.min(b,hi)-Math.max(a,lo));s+=attn[k]*ov/5}return s}
+(function(){
+  const W=900,H=320,L=48,R=16,Tp=34,B=40,pw=W-L-R,ph=H-Tp-B;
+  const x=d=>L+d/100*pw,y=v=>Tp+(1-v/100)*ph;
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Scroll reach curve'});
+  sections.forEach((s,i)=>{S('rect',{x:x(s[1]),y:Tp,width:x(s[2])-x(s[1]),height:ph,class:'band'+(i%2?' alt':'')},svg)});
+  const g=S('g',{class:'grid'},svg);
+  [0,25,50,75,100].forEach(v=>{S('line',{x1:L,x2:W-R,y1:y(v),y2:y(v)},g);T(v+'%',{x:L-8,y:y(v)+4,'text-anchor':'end'},svg)});
+  [0,20,40,60,80,100].forEach(d=>T(d+'%',{x:x(d),y:H-B+18,'text-anchor':'middle'},svg));
+  T('Page depth',{x:L+pw/2,y:H-6,'text-anchor':'middle'},svg);
+  let p=`M${x(0)},${y(100)}`;depth.forEach((d,i)=>p+=` L${x(d)},${y(reach[i])}`);
+  S('path',{d:p+` L${x(100)},${y(0)} L${x(0)},${y(0)} Z`,fill:'var(--accent)','fill-opacity':.14},svg);
+  S('path',{d:p,fill:'none',stroke:'var(--accent)','stroke-width':2.25,'stroke-linejoin':'round'},svg);
+  const ann=[[20,'38.6% reach 20%'],[62,'Reviews start · 6.7%'],[24,'']];
+  [[20,38.55,'61% gone by 20%'],[62,reachAt(62),'Reviews start: 6.7% left']].forEach(([d,v,l])=>{
+    S('circle',{cx:x(d),cy:y(v),r:5,fill:'var(--accent)',stroke:'var(--bg)','stroke-width':2},svg);
+    T(l,{x:x(d)+9,y:y(v)-9,class:'lbl-strong'},svg)});
+  // section labels on top (only those wide enough)
+  sections.forEach(s=>{if(s[2]-s[1]>=6)T(s[0],{x:x((s[1]+s[2])/2),y:Tp-10,'text-anchor':'middle','font-size':10.5},svg)});
+  // hover hit areas per section
+  sections.forEach(s=>{const r=S('rect',{x:x(s[1]),y:Tp,width:x(s[2])-x(s[1]),height:ph,fill:'transparent'},svg);
+    bindTip(r,`<b>${s[0]}</b><br>${s[1]}–${s[2]}% of page<br>${reachAt(s[1]).toFixed(1)}% of visitors reach it<br>${attnBetween(s[1],s[2]).toFixed(1)}% of attention`)});
+  document.getElementById('ch-scroll').appendChild(svg);
+  // table
+  const tb=document.getElementById('sec-table');
+  sections.forEach(s=>{const a=attnBetween(s[1],s[2]);const tr=document.createElement('tr');
+    const rr=reachAt(s[1]);
+    tr.innerHTML=`<td>${s[0]}</td><td class="r">${s[1]}%</td><td class="r ${rr<15?'lo':''}">${rr.toFixed(1)}%</td><td class="r">${a.toFixed(1)}%</td><td class="r">${Math.round(a/100*73)}s</td>`;tb.appendChild(tr)});
+})();
+
+/* ---------- Attention per visitor ---------- */
+(function(){
+  const ks=Object.keys(attn).map(Number);const base=attn[5]/reach[1];
+  const idx=ks.map(k=>attn[k]/reach[depth.indexOf(k)]/base);
+  const W=900,H=280,L=40,R=12,Tp=20,B=40,pw=W-L-R,ph=H-Tp-B,max=7;
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Attention index by depth'});
+  const g=S('g',{class:'grid'},svg);const y=v=>Tp+(1-v/max)*ph;
+  [0,1,2,4,6].forEach(v=>{S('line',{x1:L,x2:W-R,y1:y(v),y2:y(v)},g);T(v+'×',{x:L-6,y:y(v)+4,'text-anchor':'end'},svg)});
+  const slot=pw/ks.length,bw=slot-6;
+  ks.forEach((k,i)=>{const v=idx[i],bx=L+i*slot+3,h=Math.max(1,y(0)-y(v));
+    const hot=k>=65&&k<=75;
+    const b=S('rect',{x:bx,y:y(v),width:bw,height:h,rx:3,class:'bar'+(hot?'':' dim')},svg);
+    S('rect',{x:bx,y:y(v)+h-3,width:bw,height:3,class:'bar'+(hot?'':' dim')},svg);
+    T(k+'%',{x:bx+bw/2,y:H-B+16,'text-anchor':'middle','font-size':10},svg);
+    if(hot||k===5)T(v.toFixed(1)+'×',{x:bx+bw/2,y:y(v)-6,'text-anchor':'middle',class:'valtxt'},svg);
+    bindTip(b,`<b>${k-5}–${k}% depth</b><br>Attention share ${attn[k]}%<br>Reach ${reach[depth.indexOf(k)].toFixed(1)}%<br>Index ${v.toFixed(2)}× the top of page`)});
+  T('Page depth (bucket end)',{x:L+pw/2,y:H-6,'text-anchor':'middle'},svg);
+  document.getElementById('ch-attn').appendChild(svg);
+})();
+
+/* ---------- Taps ---------- */
+(function(){
+  const tot=83946;
+  const rows=[
+    ['EMI / Pay Later widget + modal',19170,'crit'],['Add to Cart (all)',10538,''],['Gallery: arrows & dots',8095,'dim'],
+    ['Menu / nav drawer',8867,'dim'],['Video feed (UGC reels)',7802,'dim'],['Pincode / delivery check',6509,'dim'],
+    ['Gallery: zoom lightbox',6225,'dim'],['Reviews (Judge.me)',3200,'dim'],['"Truth seekers" accordion',2920,'dim'],
+    ['Header: account, search, cart',2561,'dim'],['Related products',1174,'dim']].sort((a,b)=>b[1]-a[1]);
+  const W=900,lw=230,bw=W-lw-110,rh=28,H=rows.length*rh+6;
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Taps by component'});
+  rows.forEach((r,i)=>{const y=i*rh+3,w=bw*r[1]/rows[0][1];
+    T(r[0],{x:0,y:y+15,class:i<2?'lbl-strong':''},svg);
+    const b=S('rect',{x:lw,y:y,width:w,height:rh-9,rx:4,class:'bar'+(r[2]?' '+r[2]:'')},svg);
+    T((r[1]/tot*100).toFixed(1)+'%  ·  '+fmt(r[1]),{x:lw+w+8,y:y+15,class:'valtxt'},svg);
+    bindTip(b,`<b>${r[0]}</b><br>${fmt(r[1])} taps<br>${(r[1]/tot*100).toFixed(1)}% of tracked taps`)});
+  document.getElementById('ch-taps').appendChild(svg);
+})();
+})();
+</script>
+
+</body>
+</html>
